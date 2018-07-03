@@ -1,0 +1,8 @@
+
+See prior level READMEs for documentation and information on running
+this program.
+
+Drop a flash based program onto the file flash-bin, build,
+then run flash01.sram.bin and it will program that to the flash.
+
+
