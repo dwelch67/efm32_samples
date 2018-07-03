@@ -1,0 +1,8 @@
+
+These are baremetal examples for the EFM32 line if microcontrollers from
+Si Labs.
+
+Each top level directory covers a family of parts or a specific part
+as parts from different families despite all being from Si Labs may
+vary from one another.  No doubt what boards I happen to build or buy
+with those parts.

@@ -1,0 +1,6 @@
+
+See prior level READMEs for documentation and information on running
+this program.
+
+Cant get openocd to flash the part, so wrote an sram based program.
+It writes a simple infinite loop program into the flash.

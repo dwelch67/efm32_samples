@@ -1,0 +1,198 @@
+
+These are baremetal examples for the EFM32ZG family from Si Labs.  These
+are not meant to be libraries, these do not use libraries, they are
+written from information in the reference documentation directly.  If
+you are looking for libraries, are not looking to learn how it works
+but just use the part, this is not for you.
+
+So I finally got the nerve up to try soldering a QFN part. Soldering
+by hand only didnt work.  Search and watch youtube videos, once you
+solve the part being blown off the board with the hot air reflow
+station (google those words:  hot air reflow station), it really does
+try to center itself on the pads.  I did some hand soldering to touch
+up the edges, need to try without that and see what I see.
+
+My kicad board is in this directory.  Shortcuts: yes.  Production
+design: no.  (I like/use oshpark)
+
+If you have this part on some other board, you may still be able
+to take advantage of these examples.
+
+The part I bought is this one
+
+EFM32ZG108F16-QFN24T
+
+I was unable to try these parts (well could have bought a dev board
+I guess) until I solved the soldering problem.
+
+I actually put the part perfectly half way around backward.  Managed
+to spin it around and it actually works.  Will see how the second and
+third and ... boards go.
+
+I am using one of the jlink purple boards from ebay, cost around $6
+and some jumper wires and something to power it (an ftdi breakout to
+be used for uart later).  An stlink should work as well as the CMSIS
+one but for now just using the jlink.
+
+The vcc pin on the jlink or other swd/jtag debuggers is not to power
+the device, it is to sense the power used for the device, if you have
+a 3.3v part vs a 1.8v part, this is to help the debugger get the signal
+levels and sampling level right.
+
+Open two or three command line terminals, one to compile in two
+two for openocd. (apt-get or download and build openocd)
+
+From this directory
+
+openocd -f jlink.cfg -f target.cfg
+
+Open On-Chip Debugger 0.10.0-dev-00325-g12e4a2a (2016-07-05-23:15)
+Licensed under GNU GPL v2
+For bug reports, read
+    http://openocd.org/doc/doxygen/bugs.html
+swd
+adapter speed: 1000 kHz
+cortex_m reset_config sysresetreq
+Info : No device selected, using first device.
+Info : J-Link ARM-OB STM32 compiled Jun 30 2009 11:14:15
+Info : Hardware version: 7.00
+Info : VTarget = 3.300 V
+Info : clock speed 1000 kHz
+Info : SWD DPIDR 0x0bc11477
+Info : efm32.cpu: hardware has 4 breakpoints, 2 watchpoints
+
+If you dont see the breakpoints and watchpoints line as the last one
+then dont continue until you have solved that problem.
+
+Second window
+
+telnet localhost 4444
+
+Trying 127.0.0.1...
+Connected to localhost.
+Escape character is '^]'.
+Open On-Chip Debugger
+>
+
+Now we can halt the part in the telnet window, all the commands are
+typed into the telnet window.
+
+> halt
+efm32.cpu: target state: halted
+target halted due to debug-request, current mode: Thread
+xPSR: 0x01000000 pc: 0x10000062 msp: 0x20000ff0
+>
+
+If you halt while halted you dont get any output.  I have already messed
+with the flash at this point so your addresses may vary from these
+the point is the part is halted so we can run programs.
+
+Now go into blinker00 and build that.  See the TOOLCHAIN file for
+suggestions on getting and installing a gnu arm cross compiler.
+
+Now we can run it
+
+> load_image blinker00/blinker00.sram.elf
+120 bytes written at address 0x10000000
+downloaded 120 bytes in 0.007039s (16.648 KiB/s)
+> resume 0x10000000
+
+And PA0 should start toggling at a rate that is human visible if you
+have an LED hooked up.
+
+You can repeat the last few steps.  Modify and build your test program
+up arrow three times to halt, then up arrow three times to load,
+then up arrow three times to resume.
+
+At this time I was not able to get openocd to write the flash.  This
+is not necessarily a surprise.  There is code in openocd for this but
+because the days of parallel flash from one vendor are long gone each
+part's flash controller is different and someone has to take the time
+to modify any swd/jtag tool they choose to support, openocd, etc.
+
+BUT!
+
+If your part supports in application programming of the flash, this one
+does.  If you are able to download a program to ram and run it, we can.
+Then you can write a ram based program that allows you to flash the
+part and that program is not specific to any swd debugger software.
+So even if you figure it out, I recommend remembering this fact, you
+can create debug tool independent solutions.
+
+I will probably write a bootloader, but have not yet.  One approach
+would be to have the bootloader be sram based, another would be to
+have the bootloader be flash based and take up the zero address sectors
+then allow applications to be loaded at a non-zero location in flash.
+There are pros and cons to both, will see what I choose.
+
+For now I am going with my tried and true method, limited on program
+size, but I build the program to be flashed into an sram program then
+run that.  So see the flash00 directory for a very simple example of
+this.  Warning this wipes out whatever was at address zero when we
+got the part.  Eventually you want to flash your own programs so that
+will have to happen, not sure why the parts were not blank.  I hope
+its not like the samd chips from atmel where they used to have a non
+eraseable bootloader going back a long time, now they offer one you
+run in user space, why bother, make your own simpler one.
+
+So the flash00 directory when run will erase the first sector and
+put an infinite loop program there.  This is a very good starting
+point for us, as no bootloader that we know of so far has mucked
+with the chip so we can try ram based programs that are exposed to the
+post reset state of the chip, which is what our flash based user
+applications will see.
+
+You will want to go to the silabs website.  Get the datasheet and
+reference manual for this part.  You will see that it is cortex-m0+
+based so go to arms website (infocenter.arm.com) and give up a password
+and get the technical reference manual for the cortex-m0+.  That
+manual tells us that the cortex-m0+ is based on the armv6-m architecture
+so while at arms website download the armv6-m architectural reference
+manual.  Specifically the armv6-m not the armv7-m nor the -A or -AR
+manuals.
+
+ARM does not make chips (for general purpose sale at least) they
+make IP that other chip vendors use.  So while this chip has an ARM
+core in it, a fair amount of the chip is silicon labs specific IP
+not ARM's.  This same core is found in many chips by many vendors
+and since most of our code is talking to the chip vendors peripherals
+and not the ARM core itself which has very little to talk to, your
+code simply wont port.  When having a conversation or asking questions
+online I wouldnt call this a cortex-m0+ chip or processor but instead
+an silabs zero gecko or even better a EFM32ZG or EFM32ZG108 or
+EFM32ZG108F16-QFN24T.  Because that is what it is and what you are
+programming.  Mentioning cortex-m0+ is fine but that is only half the
+story.
+
+About once percent of the baremetal development time is actually writing
+your application.  The rest of the time is reading manuals and schematics
+and hacking at things since you have to assume that all documentation is
+buggy, because it is.  Somewhere in one or more of these resources that
+you are going to need is a bug.  If not a flat out bug then something
+will mislead you and you may have to beat on it for a while to figure
+it out, or dont be afraid to get the chip vendors library source code
+and see how they did it, compare that to the manual, and you may find
+the missing information and/or find that you have to do things in
+a certain undocumented order to get it to work.  For me that is part
+of the fun, why I play with these parts in my spare time.
+
+Start with blinker00, then maybe flash00, then work your way through
+the blinker examples.  Blinking an led is the
+    printf("Hello World!\n);
+equivalent in baremetal.  We DO NOT start with interrupts, we in fact
+dont want to do interrupts for as long as we can hold out.  Eventually,
+yes, good idea, but poll your way through as much as you can.  We
+start each new chip discovery by blinking the led burning time in
+wasted code loops.  Then we work our way through polling timers to
+control the led blink rate, this gives us insight both into how to use
+the timer but also a clue as to what clock rate we are really running
+is there a hidden divide by 2 we didnt catch in the manual?  We
+need to get the peripheral clock info to work our way to the uart.
+An led and a uart and an oscilloscope if you have one are your primary
+baremetal debug tools.  Can go a long way without the scope, rest
+assured.  So follow me through the blinkers into the uart examples
+and then beyond that.  I wanted to use this part for its low power
+features so I will be heading into that territory, can I run this part
+off of a small solar cell?  How many months/years can I run this part
+off of a coin cell battery?  As well as is this part easy enough to use
+for my general purpose projects?
