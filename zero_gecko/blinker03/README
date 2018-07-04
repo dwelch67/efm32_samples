@@ -1,0 +1,23 @@
+
+See prior level READMEs for documentation and information on running
+this program.
+
+I have an LED on PA0, this blinks it...
+
+Simple use of TIMER0.
+
+14,000,000/256 = 54687.5
+54687.5/65536 = 0.83 seconds
+
+This uses the overflow interrupt flag, it DOES NOT INTERRUPT THE
+ARM CORE.  We are simply polling the flags.
+
+The counter counts from 0x0000 to the TOP register setting (reset
+value is 0xFFFF) sets the overflow flag and sets the counter back
+to zero, repeat.  We poll the overflow flag, when set set clear it
+and toggle the led, repeat.  With the top at the post-reset value
+of 0xFFFF the led changes state ever 0.83 seconds.  If we change
+the TOP register to a smaller value that will increase the toggle
+rate.  Uncomment this line, rebuild and reload.
+
+    //PUT32(TIMER0_TOP,10000-1);

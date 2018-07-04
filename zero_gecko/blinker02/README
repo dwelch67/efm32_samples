@@ -1,0 +1,13 @@
+
+See prior level READMEs for documentation and information on running
+this program.
+
+I have an LED on PA0, this blinks it...
+
+Simple use of TIMER0.
+
+14,000,000/256 = 54687.5
+54687.5/65536 = 0.83 seconds
+
+Upcount from 0x0000 to 0xFFFF, toggle the led based on the 0x8000 bit.
+So half a second for each led state change.
