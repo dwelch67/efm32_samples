@@ -1,0 +1,14 @@
+
+See prior level READMEs for documentation and information on running
+this program.
+
+I have an LED on PA0, this blinks it...
+
+"The implementation can include a 24-bit SysTick system timer"
+
+"After reset, the HFRCO frequency is 14 MHz."
+
+There appears to be a systick timer.  With delay(100) which means
+100,000,000 clocks per led state change, takes around 7 seconds against
+a stopwatch.  100,000,000/14,000,000 = 7.1 and change.  So this all
+matches.
