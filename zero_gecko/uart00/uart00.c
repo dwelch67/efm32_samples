@@ -44,10 +44,9 @@ void notmain ( void )
     ra|= (0x4<<(0<<2)); //PC0
     PUT32(GPIO_PC_MODEL,ra);
 
-    PUT32(USART1_CTRL,0);
     PUT32(USART1_CLOCKDIV,1688&USART_CLKDIV_MASK); //115200
     PUT32(USART1_ROUTE,(0<<8)|(1<<1)|(0<<0));
-    PUT32(USART1_CMD,(0<<4)|(1<<2));
+    PUT32(USART1_CMD,(1<<2));
 
     while(1)
     {
