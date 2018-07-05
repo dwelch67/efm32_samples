@@ -1,0 +1,6 @@
+
+See prior level READMEs for documentation and information on running
+this program.
+
+Switch to LFRCO low frequency internal clock 32768.  Dont know why
+it upsets the SWD.
