@@ -2,7 +2,12 @@
 See prior level READMEs for documentation and information on running
 this program.
 
-Trying to get the uart working.  Something is happening but need to
-see it on a scope to figure it out.
-
 This is USART1 using PC0 as the TX output.
+
+Okay my problems were with the clockdiv register.  It is a strange
+one the math for 14Mhz at 115200 comes out to 1688, I assumed that meant
+you shifted it left 6.  But it doesnt they want to clip the lower 6 bits
+off.  What you/we can do is instead of the 256*(stuff) make it 4*(stuff)
+then shift that 6.
+
+So this outputs a 0x55 ('U') at a periodic slow rate on PC0.

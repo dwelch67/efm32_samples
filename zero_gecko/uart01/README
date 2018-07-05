@@ -1,0 +1,11 @@
+
+See prior level READMEs for documentation and information on running
+this program.
+
+This is USART1 using PC0 as the TX output.
+
+This uses the TXC status register to TX at line rate.  Sends
+ascii 0123456701234567.... forever.
+
+TXC does not start up set, have to figure out how to get it that way.
+

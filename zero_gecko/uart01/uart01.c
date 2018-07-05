@@ -33,6 +33,7 @@ void dummy ( unsigned int );
 void notmain ( void )
 {
     unsigned int ra;
+    unsigned int rx;
 
     ra=GET32(CMU_BASE+0x44);
     ra|=1<<3; //enable USART1
@@ -44,14 +45,17 @@ void notmain ( void )
     ra|= (0x4<<(0<<2)); //PC0
     PUT32(GPIO_PC_MODEL,ra);
 
-    PUT32(USART1_CTRL,0);
     PUT32(USART1_CLOCKDIV,1688&USART_CLKDIV_MASK); //115200
     PUT32(USART1_ROUTE,(0<<8)|(1<<1)|(0<<0));
-    PUT32(USART1_CMD,(0<<4)|(1<<2));
-
-    while(1)
+    PUT32(USART1_CMD,(1<<2));
+    PUT32(USART1_TXDATA,0); //Kick it, txc does not start set
+    for(rx=0;;rx++)
     {
-        PUT32(USART1_TXDATA,0x55);
-        for(ra=0;ra<0x80000;ra++) dummy(ra);
+        while(1)
+        {
+            ra=GET32(USART1_STATUS);
+            if(ra&0x20) break;
+        }
+        PUT32(USART1_TXDATA,0x30+(rx&7));
     }
 }
