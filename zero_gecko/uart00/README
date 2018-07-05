@@ -4,3 +4,5 @@ this program.
 
 Trying to get the uart working.  Something is happening but need to
 see it on a scope to figure it out.
+
+This is USART1 using PC0 as the TX output.
