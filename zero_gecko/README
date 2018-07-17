@@ -100,6 +100,14 @@ downloaded 120 bytes in 0.007039s (16.648 KiB/s)
 And PA0 should start toggling at a rate that is human visible if you
 have an LED hooked up.
 
+Now I have had issues with new parts where this does not work.  I
+have to go in and erase the flash first then reset.  This then
+upsets the debugger, you can break through and halt the processor.
+But then this begins to work and you can flash a simple program.
+See the EDIT further down in this document for the commands
+to run if you are having issues at this point.
+
+
 You can repeat the last few steps.  Modify and build your test program
 up arrow three times to halt, then up arrow three times to load,
 then up arrow three times to resume.
@@ -196,3 +204,128 @@ features so I will be heading into that territory, can I run this part
 off of a small solar cell?  How many months/years can I run this part
 off of a coin cell battery?  As well as is this part easy enough to use
 for my general purpose projects?
+
+
+This simply erases the part.
+
+mww 0x400C0008 0x00000001
+mww 0x400C0010 0x00000000
+mww 0x400C000C 0x00000001
+mww 0x400C000C 0x00000002
+mdw 0x400C001C
+mdw 0x400C001C
+mdw 0x400C001C
+mdw 0x400C001C
+mdw 0x400C001C
+mdw 0x400C001C
+mww 0x400C0008 0x00000000
+
+
+> mww 0x400C0008 0x00000001
+> mww 0x400C0010 0x00000000
+> mww 0x400C000C 0x00000001
+> mww 0x400C000C 0x00000002
+> mdw 0x400C001C
+0x400c001c: 00000009
+> mdw 0x400C001C
+0x400c001c: 00000009
+> mdw 0x400C001C
+0x400c001c: 00000008
+> mdw 0x400C001C
+0x400c001c: 00000008
+> mdw 0x400C001C
+0x400c001c: 00000008
+> mdw 0x400C001C
+0x400c001c: 00000008
+> mww 0x400C0008 0x00000000
+
+now see that it is erased.
+
+> mdw 0
+0x00000000: ffffffff
+>
+
+This writes a few words to the beginning of flash which are an
+infinite loop program.  With this after the reset the debugger
+wont be upset and spew stuff out.  Easier to stop the processor.
+
+
+mww 0x400C0008 0x00000001
+mww 0x400C0010 0x00000000
+mww 0x400C000C 0x00000001
+mww 0x400C000C 0x00000002
+mdw 0x400C001C
+mdw 0x400C001C
+mdw 0x400C001C
+mdw 0x400C001C
+mdw 0x400C001C
+mww 0x400C0010 0x00000000
+mww 0x400C000C 0x00000001
+mww 0x400C0018 0x20001000
+mww 0x400C000C 0x00000008
+mdw 0x400C001C
+mdw 0x400C001C
+mdw 0x400C001C
+mdw 0x400C001C
+mdw 0x400C001C
+mww 0x400C0018 0x00000011
+mww 0x400C000C 0x00000008
+mdw 0x400C001C
+mdw 0x400C001C
+mdw 0x400C001C
+mdw 0x400C001C
+mdw 0x400C001C
+mww 0x400C0018 0x00000011
+mww 0x400C000C 0x00000008
+mdw 0x400C001C
+mdw 0x400C001C
+mdw 0x400C001C
+mdw 0x400C001C
+mdw 0x400C001C
+mww 0x400C0018 0x00000011
+mww 0x400C000C 0x00000008
+mdw 0x400C001C
+mdw 0x400C001C
+mdw 0x400C001C
+mdw 0x400C001C
+mdw 0x400C001C
+mww 0x400C0018 0xE7FEE7FE
+mww 0x400C000C 0x00000008
+mdw 0x400C001C
+mdw 0x400C001C
+mdw 0x400C001C
+mdw 0x400C001C
+mdw 0x400C001C
+mww 0x400C0008 0x00000000
+
+Now we see the program is loaded
+
+> mdw 0 20
+0x00000000: 20001000 00000011 00000011 00000011 e7fee7fe ffffffff ffffffff ffffffff
+0x00000020: ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff ffffffff
+0x00000040: ffffffff ffffffff ffffffff ffffffff
+>
+
+And a reset of the part
+
+...
+Info : SWD DPIDR 0x1f033f00
+Info : SWD DPIDR 0x1f033f00
+Error: Could not initialize the debug port
+Examination failed, GDB will be halted. Polling again in 100ms
+Info : SWD DPIDR 0x0bc11477
+Polling target efm32.cpu failed, trying to reexamine
+Info : SWD DPIDR 0x0bc11477
+Info : efm32.cpu: hardware has 4 breakpoints, 2 watchpoints
+
+
+> halt
+efm32.cpu: target state: halted
+target halted due to debug-request, current mode: Thread
+xPSR: 0x81000000 pc: 0x00000010 msp: 0x20001000
+>
+
+And then can move on with the tutorial running blinker00 and running
+other programs.
+
+
